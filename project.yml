@@ -1,0 +1,23 @@
+name: BabyFeeder
+options:
+  bundleIdPrefix: com.babyfeeder
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+settings:
+  SWIFT_VERSION: "5.0"
+
+targets:
+  BabyFeeder:
+    type: application
+    platform: iOS
+    sources:
+      - BabyFeeder
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.babyfeeder.ios
+      INFOPLIST_FILE: BabyFeeder/Info.plist
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: BabyFeeder/Info.plist
+    dependencies: []

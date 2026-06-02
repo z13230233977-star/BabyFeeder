@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="喂养记录">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="宝贝喂养记录">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+  <title>🍼 宝贝喂养记录</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="js/register-sw.js"></script>
+</head>
+<body>
+  <!-- 头部 -->
+  <header class="app-header">
+    <div class="app-title">🍼 宝贝喂养记录</div>
+    <div class="app-subtitle" id="current-datetime">加载中...</div>
+  </header>
+
+  <!-- 标签栏 -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="record">📝 记录</button>
+    <button class="tab-btn" data-tab="history">📋 历史</button>
+    <button class="tab-btn" data-tab="stats">📊 统计</button>
+    <button class="tab-btn" data-tab="predict">🔮 预测</button>
+    <button class="tab-btn" data-tab="sync">☁️ 同步</button>
+  </nav>
+
+  <!-- ========== 记录标签页 ========== -->
+  <div class="tab-content active" id="tab-record">
+    <!-- 快速记录 -->
+    <div class="card">
+      <div class="card-title">📝 记录喂养</div>
+      <div class="form-group">
+        <label class="form-label">喂养类型</label>
+        <div class="radio-group">
+          <label><input type="radio" name="feed-type" value="formula" checked><span>🍼 奶粉</span></label>
+          <label><input type="radio" name="feed-type" value="breast"><span>🤱 母乳</span></label>
+          <label><input type="radio" name="feed-type" value="both"><span>🔄 混合</span></label>
+        </div>
+      </div>
+      <div class="form-group" id="breast-side-options" style="display:none">
+        <label class="form-label">哺乳方向</label>
+        <div class="radio-group">
+          <label><input type="radio" name="breast-side" value="left"><span>👈 左侧</span></label>
+          <label><input type="radio" name="breast-side" value="right"><span>👉 右侧</span></label>
+          <label><input type="radio" name="breast-side" value="both" checked><span>🔄 双侧</span></label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">奶量 (ml)</label>
+        <input type="number" class="form-input" id="feed-amount" placeholder="例如：120" min="0" step="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注（可选）</label>
+        <input type="text" class="form-input" id="feed-note" placeholder="例如：吐奶、饿得快等">
+      </div>
+      <button class="btn-primary" id="form-submit">记录喂养</button>
+    </div>
+
+    <!-- 今日概览 -->
+    <div class="today-summary">
+      <div class="summary-item">
+        <div class="summary-value" id="today-count">0</div>
+        <div class="summary-label">喂养次数</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="today-total">0</div>
+        <div class="summary-label">总奶量(ml)</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="today-avg">0</div>
+        <div class="summary-label">平均奶量</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-value" id="today-interval">--</div>
+        <div class="summary-label">平均间隔</div>
+      </div>
+    </div>
+
+    <!-- 今日喂养列表 -->
+    <div class="card">
+      <div class="card-title">📋 今日喂养</div>
+      <div id="today-list"></div>
+      <div class="empty-state" id="today-empty">还没有记录，快开始吧 ✨</div>
+    </div>
+  </div>
+
+  <!-- ========== 历史标签页 ========== -->
+  <div class="tab-content" id="tab-history">
+    <div class="card">
+      <div class="card-title">📋 全部记录</div>
+      <div class="empty-state" id="history-empty">还没有任何记录</div>
+      <div id="history-list"></div>
+    </div>
+    <!-- 数据管理 -->
+    <div class="card">
+      <div class="card-title">🗂️ 数据管理</div>
+      <div class="data-actions">
+        <button class="btn-secondary" id="btn-export">📤 导出数据</button>
+        <button class="btn-secondary" id="btn-import">📥 导入数据</button>
+        <button class="btn-danger" id="btn-clear">🗑️ 清空数据</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+  </div>
+
+  <!-- ========== 统计标签页 ========== -->
+  <div class="tab-content" id="tab-stats">
+    <div class="stats-overview">
+      <div class="stat-item">
+        <div class="stat-value" id="stats-total-days">0</div>
+        <div class="stat-label">记录天数</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stats-total-feeds">0</div>
+        <div class="stat-label">总喂养次数</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stats-total-amount">0</div>
+        <div class="stat-label">总奶量(ml)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stats-avg-amount">0</div>
+        <div class="stat-label">平均每次</div>
+      </div>
+    </div>
+
+    <div class="card chart-container">
+      <div class="card-title">📈 每日总奶量趋势</div>
+      <canvas id="chart-amount"></canvas>
+    </div>
+
+    <div class="card chart-container">
+      <div class="card-title">📊 每日喂养次数</div>
+      <canvas id="chart-count"></canvas>
+    </div>
+
+    <div class="card chart-container">
+      <div class="card-title">🕐 喂养时间分布</div>
+      <canvas id="chart-hourly"></canvas>
+    </div>
+  </div>
+
+  <!-- ========== 预测标签页 ========== -->
+  <div class="tab-content" id="tab-predict">
+    <div class="card" id="predict-result">
+      <div class="predict-empty">
+        <div class="predict-icon">🔮</div>
+        <p>加载中...</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">💡 使用说明</div>
+      <ul style="font-size:13px;color:var(--text-secondary);padding-left:16px">
+        <li>系统会根据近 7 天数据预测下一次喂养</li>
+        <li>喂养次数越多，预测越准确</li>
+        <li>记录喂养时请确保填写正确的奶量</li>
+        <li>数据可同步到多台设备</li>
+        <li>添加到主屏幕后可离线使用 📲</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/prediction.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+  <!-- ========== 同步标签页 ========== -->
+  <div class="tab-content" id="tab-sync">
+    <div class="card">
+      <div class="card-title">☁️ 数据同步</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
+        多设备共享数据：在所有设备上设置相同的群组码和服务器地址，即可同步喂养记录。
+      </p>
+      <div class="form-group">
+        <label class="form-label">服务器地址</label>
+        <input type="text" class="form-input" id="sync-server-url" placeholder="例如：http://192.168.1.100:8081">
+      </div>
+      <div class="form-group">
+        <label class="form-label">群组码（4-32位字母数字）</label>
+        <input type="text" class="form-input" id="sync-group-id" placeholder="例如：baby2024" maxlength="32" pattern="[a-zA-Z0-9\-]+">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer">
+          <input type="checkbox" id="sync-auto"> 启动时自动同步
+        </label>
+      </div>
+      <button class="btn-primary" id="btn-sync" style="margin-bottom:8px;background:linear-gradient(135deg,#43e97b,#38f9d7)">🔄 立即同步</button>
+      <button class="btn-secondary" id="btn-sync-upload" style="margin-bottom:4px">⬆️ 仅上传</button>
+      <button class="btn-secondary" id="btn-sync-download">⬇️ 仅下载</button>
+    </div>
+    <div class="card" id="sync-status-card" style="display:none">
+      <div class="card-title">📋 同步状态</div>
+      <div id="sync-status"></div>
+    </div>
+  </div>
+</html>
