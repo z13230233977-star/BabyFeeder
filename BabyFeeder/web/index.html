@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -6,169 +6,269 @@
   <meta name="theme-color" content="#667eea">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="å–‚å…»è®°å½•">
+  <meta name="apple-mobile-web-app-title" content="Î¹Ñø¼ÇÂ¼">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="å®è´å–‚å…»è®°å½•">
+  <meta name="application-name" content="±¦±´Î¹Ñø¼ÇÂ¼">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-  <title>ðŸ¼ å®è´å–‚å…»è®°å½•</title>
+  <title>?? ±¦±´Î¹Ñø¼ÇÂ¼</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script defer src="js/register-sw.js"></script>
 </head>
 <body>
-  <!-- å¤´éƒ¨ -->
+  <!-- Í·²¿ -->
   <header class="app-header">
-    <div class="app-title">ðŸ¼ å®è´å–‚å…»è®°å½•</div>
-    <div class="app-subtitle" id="current-datetime">åŠ è½½ä¸­...</div>
+    <div class="app-title">?? ±¦±´Î¹Ñø¼ÇÂ¼</div>
+    <div class="app-subtitle" id="current-datetime">¼ÓÔØÖÐ...</div>
+    <div class="app-badge" id="header-age-badge"></div>
   </header>
 
-  <!-- æ ‡ç­¾æ  -->
+  <!-- ±êÇ©À¸ -->
   <nav class="tab-bar">
-    <button class="tab-btn active" data-tab="record">ðŸ“ è®°å½•</button>
-    <button class="tab-btn" data-tab="history">ðŸ“‹ åŽ†å²</button>
-    <button class="tab-btn" data-tab="stats">ðŸ“Š ç»Ÿè®¡</button>
-    <button class="tab-btn" data-tab="predict">ðŸ”® é¢„æµ‹</button>
-    <button class="tab-btn" data-tab="sync">â˜ï¸ åŒæ­¥</button>
+    <button class="tab-btn active" data-tab="record">?? ¼ÇÂ¼</button>
+    <button class="tab-btn" data-tab="history">?? ÀúÊ·</button>
+    <button class="tab-btn" data-tab="stats">?? Í³¼Æ</button>
+    <button class="tab-btn" data-tab="predict">?? Ô¤²â</button>
+    <button class="tab-btn" data-tab="sync">?? Í¬²½</button>
+    <button class="tab-btn" data-tab="settings">?? ÉèÖÃ</button>
   </nav>
 
-  <!-- ========== è®°å½•æ ‡ç­¾é¡µ ========== -->
+  <!-- ========== ¼ÇÂ¼±êÇ©Ò³ ========== -->
   <div class="tab-content active" id="tab-record">
-    <!-- å¿«é€Ÿè®°å½• -->
+    <!-- ¿ìËÙ¼ÇÂ¼ -->
     <div class="card">
-      <div class="card-title">ðŸ“ è®°å½•å–‚å…»</div>
+      <div class="card-title">?? ¼ÇÂ¼Î¹Ñø</div>
       <div class="form-group">
-        <label class="form-label">å–‚å…»ç±»åž‹</label>
+        <label class="form-label">Î¹ÑøÀàÐÍ</label>
         <div class="radio-group">
-          <label><input type="radio" name="feed-type" value="formula" checked><span>ðŸ¼ å¥¶ç²‰</span></label>
-          <label><input type="radio" name="feed-type" value="breast"><span>ðŸ¤± æ¯ä¹³</span></label>
-          <label><input type="radio" name="feed-type" value="both"><span>ðŸ”„ æ··åˆ</span></label>
+          <label><input type="radio" name="feed-type" value="formula" checked><span>?? ÄÌ·Û</span></label>
+          <label><input type="radio" name="feed-type" value="breast"><span>?? Ä¸Èé</span></label>
+          <label><input type="radio" name="feed-type" value="both"><span>?? »ìºÏ</span></label>
         </div>
       </div>
       <div class="form-group" id="breast-side-options" style="display:none">
-        <label class="form-label">å“ºä¹³æ–¹å‘</label>
+        <label class="form-label">²¸Èé·½Ïò</label>
         <div class="radio-group">
-          <label><input type="radio" name="breast-side" value="left"><span>ðŸ‘ˆ å·¦ä¾§</span></label>
-          <label><input type="radio" name="breast-side" value="right"><span>ðŸ‘‰ å³ä¾§</span></label>
-          <label><input type="radio" name="breast-side" value="both" checked><span>ðŸ”„ åŒä¾§</span></label>
+          <label><input type="radio" name="breast-side" value="left"><span>?? ×ó²à</span></label>
+          <label><input type="radio" name="breast-side" value="right"><span>?? ÓÒ²à</span></label>
+          <label><input type="radio" name="breast-side" value="both" checked><span>?? Ë«²à</span></label>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">å¥¶é‡ (ml)</label>
-        <input type="number" class="form-input" id="feed-amount" placeholder="ä¾‹å¦‚ï¼š120" min="0" step="10">
+        <label class="form-label">ÄÌÁ¿ (ml)</label>
+        <input type="number" class="form-input" id="feed-amount" placeholder="ÀýÈç£º120" min="0" step="10">
       </div>
       <div class="form-group">
-        <label class="form-label">å¤‡æ³¨ï¼ˆå¯é€‰ï¼‰</label>
-        <input type="text" class="form-input" id="feed-note" placeholder="ä¾‹å¦‚ï¼šåå¥¶ã€é¥¿å¾—å¿«ç­‰">
+        <label class="form-label">±¸×¢£¨¿ÉÑ¡£©</label>
+        <input type="text" class="form-input" id="feed-note" placeholder="ÀýÈç£ºÍÂÄÌ¡¢¶öµÃ¿ìµÈ">
       </div>
-      <button class="btn-primary" id="form-submit">è®°å½•å–‚å…»</button>
+      <button class="btn-primary" id="form-submit">¼ÇÂ¼Î¹Ñø</button>
     </div>
 
-    <!-- ä»Šæ—¥æ¦‚è§ˆ -->
+    <!-- ½ñÈÕ¸ÅÀÀ -->
     <div class="today-summary">
       <div class="summary-item">
         <div class="summary-value" id="today-count">0</div>
-        <div class="summary-label">å–‚å…»æ¬¡æ•°</div>
+        <div class="summary-label">Î¹Ñø´ÎÊý</div>
       </div>
       <div class="summary-item">
         <div class="summary-value" id="today-total">0</div>
-        <div class="summary-label">æ€»å¥¶é‡(ml)</div>
+        <div class="summary-label">×ÜÄÌÁ¿(ml)</div>
       </div>
       <div class="summary-item">
         <div class="summary-value" id="today-avg">0</div>
-        <div class="summary-label">å¹³å‡å¥¶é‡</div>
+        <div class="summary-label">Æ½¾ùÄÌÁ¿</div>
       </div>
       <div class="summary-item">
         <div class="summary-value" id="today-interval">--</div>
-        <div class="summary-label">å¹³å‡é—´éš”</div>
+        <div class="summary-label">Æ½¾ù¼ä¸ô</div>
       </div>
     </div>
 
-    <!-- ä»Šæ—¥å–‚å…»åˆ—è¡¨ -->
+    <!-- ½ñÈÕÎ¹ÑøÁÐ±í -->
     <div class="card">
-      <div class="card-title">ðŸ“‹ ä»Šæ—¥å–‚å…»</div>
+      <div class="card-title">?? ½ñÈÕÎ¹Ñø</div>
       <div id="today-list"></div>
-      <div class="empty-state" id="today-empty">è¿˜æ²¡æœ‰è®°å½•ï¼Œå¿«å¼€å§‹å§ âœ¨</div>
+      <div class="empty-state" id="today-empty">»¹Ã»ÓÐ¼ÇÂ¼£¬¿ì¿ªÊ¼°É ?</div>
     </div>
   </div>
 
-  <!-- ========== åŽ†å²æ ‡ç­¾é¡µ ========== -->
+  <!-- ========== ÀúÊ·±êÇ©Ò³ ========== -->
   <div class="tab-content" id="tab-history">
     <div class="card">
-      <div class="card-title">ðŸ“‹ å…¨éƒ¨è®°å½•</div>
-      <div class="empty-state" id="history-empty">è¿˜æ²¡æœ‰ä»»ä½•è®°å½•</div>
+      <div class="card-title">?? È«²¿¼ÇÂ¼</div>
+      <div class="empty-state" id="history-empty">»¹Ã»ÓÐÈÎºÎ¼ÇÂ¼</div>
       <div id="history-list"></div>
     </div>
-    <!-- æ•°æ®ç®¡ç† -->
+    <!-- Êý¾Ý¹ÜÀí -->
     <div class="card">
-      <div class="card-title">ðŸ—‚ï¸ æ•°æ®ç®¡ç†</div>
+      <div class="card-title">??? Êý¾Ý¹ÜÀí</div>
       <div class="data-actions">
-        <button class="btn-secondary" id="btn-export">ðŸ“¤ å¯¼å‡ºæ•°æ®</button>
-        <button class="btn-secondary" id="btn-import">ðŸ“¥ å¯¼å…¥æ•°æ®</button>
-        <button class="btn-danger" id="btn-clear">ðŸ—‘ï¸ æ¸…ç©ºæ•°æ®</button>
+        <button class="btn-secondary" id="btn-export">?? µ¼³öÊý¾Ý</button>
+        <button class="btn-secondary" id="btn-import">?? µ¼ÈëÊý¾Ý</button>
+        <button class="btn-danger" id="btn-clear">??? Çå¿ÕÊý¾Ý</button>
       </div>
       <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
   </div>
 
-  <!-- ========== ç»Ÿè®¡æ ‡ç­¾é¡µ ========== -->
+  <!-- ========== Í³¼Æ±êÇ©Ò³ ========== -->
   <div class="tab-content" id="tab-stats">
     <div class="stats-overview">
       <div class="stat-item">
         <div class="stat-value" id="stats-total-days">0</div>
-        <div class="stat-label">è®°å½•å¤©æ•°</div>
+        <div class="stat-label">¼ÇÂ¼ÌìÊý</div>
       </div>
       <div class="stat-item">
         <div class="stat-value" id="stats-total-feeds">0</div>
-        <div class="stat-label">æ€»å–‚å…»æ¬¡æ•°</div>
+        <div class="stat-label">×ÜÎ¹Ñø´ÎÊý</div>
       </div>
       <div class="stat-item">
         <div class="stat-value" id="stats-total-amount">0</div>
-        <div class="stat-label">æ€»å¥¶é‡(ml)</div>
+        <div class="stat-label">×ÜÄÌÁ¿(ml)</div>
       </div>
       <div class="stat-item">
         <div class="stat-value" id="stats-avg-amount">0</div>
-        <div class="stat-label">å¹³å‡æ¯æ¬¡</div>
+        <div class="stat-label">Æ½¾ùÃ¿´Î</div>
       </div>
     </div>
 
     <div class="card chart-container">
-      <div class="card-title">ðŸ“ˆ æ¯æ—¥æ€»å¥¶é‡è¶‹åŠ¿</div>
+      <div class="card-title">?? Ã¿ÈÕ×ÜÄÌÁ¿Ç÷ÊÆ</div>
       <canvas id="chart-amount"></canvas>
     </div>
 
     <div class="card chart-container">
-      <div class="card-title">ðŸ“Š æ¯æ—¥å–‚å…»æ¬¡æ•°</div>
+      <div class="card-title">?? Ã¿ÈÕÎ¹Ñø´ÎÊý</div>
       <canvas id="chart-count"></canvas>
     </div>
 
     <div class="card chart-container">
-      <div class="card-title">ðŸ• å–‚å…»æ—¶é—´åˆ†å¸ƒ</div>
+      <div class="card-title">?? Î¹ÑøÊ±¼ä·Ö²¼</div>
       <canvas id="chart-hourly"></canvas>
+    </div>
+
+    <!-- ÔÂÁä²Î¿¼ -->
+    <div class="card" id="stats-age-reference" style="display:none">
+      <div class="card-title">?? ÔÂÁäÎ¹Ñø²Î¿¼</div>
+      <div id="age-reference-content"></div>
     </div>
   </div>
 
-  <!-- ========== é¢„æµ‹æ ‡ç­¾é¡µ ========== -->
+  <!-- ========== Ô¤²â±êÇ©Ò³ ========== -->
   <div class="tab-content" id="tab-predict">
     <div class="card" id="predict-result">
       <div class="predict-empty">
-        <div class="predict-icon">ðŸ”®</div>
-        <p>åŠ è½½ä¸­...</p>
+        <div class="predict-icon">??</div>
+        <p>¼ÓÔØÖÐ...</p>
       </div>
     </div>
+
+    <!-- ÔÂÁäÌáÊ¾ -->
+    <div class="card" id="predict-age-hint" style="display:none">
+      <div class="card-title">?? ÔÂÁä²Î¿¼±ê×¼</div>
+      <div id="age-hint-content"></div>
+    </div>
+
     <div class="card">
-      <div class="card-title">ðŸ’¡ ä½¿ç”¨è¯´æ˜Ž</div>
+      <div class="card-title">?? Ê¹ÓÃËµÃ÷</div>
       <ul style="font-size:13px;color:var(--text-secondary);padding-left:16px">
-        <li>ç³»ç»Ÿä¼šæ ¹æ®è¿‘ 7 å¤©æ•°æ®é¢„æµ‹ä¸‹ä¸€æ¬¡å–‚å…»</li>
-        <li>å–‚å…»æ¬¡æ•°è¶Šå¤šï¼Œé¢„æµ‹è¶Šå‡†ç¡®</li>
-        <li>è®°å½•å–‚å…»æ—¶è¯·ç¡®ä¿å¡«å†™æ­£ç¡®çš„å¥¶é‡</li>
-        <li>æ•°æ®å¯åŒæ­¥åˆ°å¤šå°è®¾å¤‡</li>
-        <li>æ·»åŠ åˆ°ä¸»å±å¹•åŽå¯ç¦»çº¿ä½¿ç”¨ ðŸ“²</li>
+        <li>ÏÈÈ¥ <b>?? ÉèÖÃ</b> ÌîÐ´±¦±¦µÄ³öÉúÈÕÆÚ£¬»ñÈ¡ÔÂÁä¾«×¼Ô¤²â</li>
+        <li>ÏµÍ³»á¸ù¾Ý½ü 7 ÌìÊý¾ÝÔ¤²âÏÂÒ»´ÎÎ¹Ñø</li>
+        <li>Î¹Ñø´ÎÊýÔ½¶à£¬Ô¤²âÔ½×¼È·</li>
+        <li>Êý¾Ý¿ÉÍ¬²½µ½¶àÌ¨Éè±¸</li>
+        <li>Ìí¼Óµ½Ö÷ÆÁÄ»ºó¿ÉÀëÏßÊ¹ÓÃ ??</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- ========== Í¬²½±êÇ©Ò³ ========== -->
+  <div class="tab-content" id="tab-sync">
+    <div class="card">
+      <div class="card-title">?? Êý¾ÝÍ¬²½</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
+        ¶àÉè±¸¹²ÏíÊý¾Ý£ºÔÚËùÓÐÉè±¸ÉÏÉèÖÃÏàÍ¬µÄÈº×éÂëºÍ·þÎñÆ÷µØÖ·£¬¼´¿ÉÍ¬²½Î¹Ñø¼ÇÂ¼¡£
+      </p>
+      <div class="form-group">
+        <label class="form-label">·þÎñÆ÷µØÖ·</label>
+        <input type="url" class="form-input" id="sync-server-url" placeholder="ÀýÈç£ºhttp://192.168.1.100:8081">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Èº×éÂë£¨4-32Î»×ÖÄ¸Êý×Ö£©</label>
+        <input type="text" class="form-input" id="sync-group-id" placeholder="ÀýÈç£ºbaby2024" maxlength="32" pattern="[a-zA-Z0-9\-]+">
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer">
+          <input type="checkbox" id="sync-auto"> Æô¶¯Ê±×Ô¶¯Í¬²½
+        </label>
+      </div>
+      <button class="btn-primary" id="btn-sync" style="margin-bottom:8px;background:linear-gradient(135deg,#43e97b,#38f9d7)">?? Á¢¼´Í¬²½</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn-secondary" id="btn-sync-upload" style="flex:1">?? ½öÉÏ´«</button>
+        <button class="btn-secondary" id="btn-sync-download" style="flex:1">?? ½öÏÂÔØ</button>
+      </div>
+      <button class="btn-secondary" id="btn-sync-ping" style="width:100%">?? ²âÊÔÁ¬½Ó</button>
+    </div>
+    <div class="card" id="sync-status-card" style="display:none">
+      <div class="card-title">?? Í¬²½×´Ì¬</div>
+      <div id="sync-status"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">??? ×Ô½¨Í¬²½·þÎñÆ÷</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">
+        ÈçÐèÊ¹ÓÃÍ¬²½¹¦ÄÜ£¬¿ÉÔÚµçÄÔÉÏÔËÐÐÍ¬²½·þÎñÆ÷£º
+      </p>
+      <div style="font-size:12px;background:#f0f0f0;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-all;color:var(--text)"># ·½Ê½Ò»£ºNode.js ·þÎñÆ÷£¨ÍÆ¼ö£©
+# ÏÂÔØ sync-server.js ºóÔËÐÐ£º
+node sync-server.js
+
+# ·þÎñÆ÷Ä¬ÈÏÔËÐÐÔÚ http://0.0.0.0:8081
+# ÔÚ App ÖÐÌîÐ´µçÄÔ IP + ¶Ë¿Ú¼´¿É</div>
+    </div>
+  </div>
+
+  <!-- ========== ÉèÖÃ±êÇ©Ò³ ========== -->
+  <div class="tab-content" id="tab-settings">
+    <div class="card">
+      <div class="card-title">?? Ó¤¶ùµµ°¸</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
+        ÉèÖÃ±¦±¦µÄ³öÉúÈÕÆÚºó£¬Ô¤²âÒýÇæ½«¸ù¾ÝÔÂÁäÌá¹©¸ü¾«×¼µÄÎ¹Ñø½¨Òé¡£
+      </p>
+      <div class="form-group">
+        <label class="form-label">±¦±¦Ãû×Ö</label>
+        <input type="text" class="form-input" id="baby-name" placeholder="ÀýÈç£ºÐ¡±¦" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">³öÉúÈÕÆÚ</label>
+        <input type="date" class="form-input" id="baby-birthdate">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="baby-age-display">µ±Ç°ÔÂÁä£ºÎ´ÉèÖÃ</label>
+      </div>
+      <button class="btn-primary" id="btn-save-profile">?? ±£´æµµ°¸</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">?? Î¹Ñø²Î¿¼±ê×¼</div>
+      <div id="feeding-guide">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">
+          ÉèÖÃ³öÉúÈÕÆÚºó£¬ÒÔÏÂÊÇ¸ù¾ÝÔÂÁäµÄÍÆ¼öÖµ£º
+        </div>
+        <div id="feeding-guide-table"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">?? ¹ØÓÚ</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <div>°æ±¾£º2.0.0</div>
+        <div>ÍÆ¼ö²Î¿¼£ºWHO¶ùÍ¯Î¹ÑøÖ¸ÄÏ / ÖÐ¹ú¾ÓÃñÉÅÊ³Ö¸ÄÏ</div>
+      </div>
     </div>
   </div>
 
@@ -177,33 +277,4 @@
   <script src="js/charts.js"></script>
   <script src="js/app.js"></script>
 </body>
-  <!-- ========== åŒæ­¥æ ‡ç­¾é¡µ ========== -->
-  <div class="tab-content" id="tab-sync">
-    <div class="card">
-      <div class="card-title">â˜ï¸ æ•°æ®åŒæ­¥</div>
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
-        å¤šè®¾å¤‡å…±äº«æ•°æ®ï¼šåœ¨æ‰€æœ‰è®¾å¤‡ä¸Šè®¾ç½®ç›¸åŒçš„ç¾¤ç»„ç å’ŒæœåŠ¡å™¨åœ°å€ï¼Œå³å¯åŒæ­¥å–‚å…»è®°å½•ã€‚
-      </p>
-      <div class="form-group">
-        <label class="form-label">æœåŠ¡å™¨åœ°å€</label>
-        <input type="text" class="form-input" id="sync-server-url" placeholder="ä¾‹å¦‚ï¼šhttp://192.168.1.100:8081">
-      </div>
-      <div class="form-group">
-        <label class="form-label">ç¾¤ç»„ç ï¼ˆ4-32ä½å­—æ¯æ•°å­—ï¼‰</label>
-        <input type="text" class="form-input" id="sync-group-id" placeholder="ä¾‹å¦‚ï¼šbaby2024" maxlength="32" pattern="[a-zA-Z0-9\-]+">
-      </div>
-      <div class="form-group">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer">
-          <input type="checkbox" id="sync-auto"> å¯åŠ¨æ—¶è‡ªåŠ¨åŒæ­¥
-        </label>
-      </div>
-      <button class="btn-primary" id="btn-sync" style="margin-bottom:8px;background:linear-gradient(135deg,#43e97b,#38f9d7)">ðŸ”„ ç«‹å³åŒæ­¥</button>
-      <button class="btn-secondary" id="btn-sync-upload" style="margin-bottom:4px">â¬†ï¸ ä»…ä¸Šä¼ </button>
-      <button class="btn-secondary" id="btn-sync-download">â¬‡ï¸ ä»…ä¸‹è½½</button>
-    </div>
-    <div class="card" id="sync-status-card" style="display:none">
-      <div class="card-title">ðŸ“‹ åŒæ­¥çŠ¶æ€</div>
-      <div id="sync-status"></div>
-    </div>
-  </div>
 </html>

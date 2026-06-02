@@ -1,12 +1,45 @@
-ï»¿/**
- * é¢„æµ‹å¼•æ“ - åŸºäºå†å²å–‚å…»æ•°æ®é¢„æµ‹ä¸‹ä¸€æ¬¡å–‚å…»æ—¶é—´å’Œå¥¶é‡
+/**
+ * Ô¤²âÒıÇæ - »ùÓÚÀúÊ·Î¹ÑøÊı¾İºÍÓ¤¶ùÔÂÁäÔ¤²âÏÂÒ»´ÎÎ¹Ñø
+ *
+ * °´ÔÂÁäµÄÎ¹Ñø²Î¿¼±ê×¼£¨WHO/ÖĞ¹ú¶ù¿ÆÖ¸ÄÏ£©£º
+ * - ĞÂÉú¶ù£¨0-1ÔÂ£©£ºÃ¿ 2-3 Ğ¡Ê±£¬30-90ml/´Î
+ * - 1-2 ¸öÔÂ£ºÃ¿ 3-4 Ğ¡Ê±£¬60-120ml/´Î
+ * - 2-4 ¸öÔÂ£ºÃ¿ 3-4 Ğ¡Ê±£¬90-150ml/´Î
+ * - 4-6 ¸öÔÂ£ºÃ¿ 4-5 Ğ¡Ê±£¬120-180ml/´Î
+ * - 6-12 ¸öÔÂ£ºÃ¿ 4-6 Ğ¡Ê±£¬150-240ml/´Î£¨ÒÑÌí¼Ó¸¨Ê³£©
+ * - 12+ ¸öÔÂ£ºÃ¿ 4-6 Ğ¡Ê±£¬180-300ml/´Î
  */
 
 const Predictor = {
   /**
-   * é¢„æµ‹ä¸‹ä¸€æ¬¡å–‚å…»
-   * @param {number} lookbackDays - å›æº¯å¤©æ•°
-   * @returns {{ nextTime: string, nextAmount: number, confidence: number, insight: string }}
+   * ¸ù¾İÓ¤¶ùÔÂÁä»ñÈ¡Î¹Ñø²Î¿¼·¶Î§
+   */
+  getAgeGuidelines() {
+    const months = BabyProfile.getAgeMonths();
+    if (months === null) return null;
+
+    let guideline;
+    if (months < 1) {
+      guideline = { minInterval: 120, maxInterval: 180, minAmount: 30, maxAmount: 90, label: 'ĞÂÉú¶ùÆÚ' };
+    } else if (months < 2) {
+      guideline = { minInterval: 150, maxInterval: 240, minAmount: 60, maxAmount: 120, label: '1¸öÔÂ' };
+    } else if (months < 4) {
+      guideline = { minInterval: 150, maxInterval: 240, minAmount: 90, maxAmount: 150, label: '2-3¸öÔÂ' };
+    } else if (months < 6) {
+      guideline = { minInterval: 180, maxInterval: 300, minAmount: 120, maxAmount: 180, label: '4-5¸öÔÂ' };
+    } else if (months < 12) {
+      guideline = { minInterval: 240, maxInterval: 360, minAmount: 150, maxAmount: 240, label: '6-11¸öÔÂ' };
+    } else {
+      guideline = { minInterval: 240, maxInterval: 360, minAmount: 180, maxAmount: 300, label: '1ËêÒÔÉÏ' };
+    }
+
+    return guideline;
+  },
+
+  /**
+   * Ô¤²âÏÂÒ»´ÎÎ¹Ñø
+   * @param {number} lookbackDays - »ØËİÌìÊı
+   * @returns {{ nextTime: string, nextAmount: number, confidence: number, insight: string, guideline: object }}
    */
   predict(lookbackDays = 7) {
     const records = DataManager.getAll();
@@ -15,23 +48,31 @@ const Predictor = {
         nextTime: null,
         nextAmount: null,
         confidence: 0,
-        insight: 'æ•°æ®ä¸è¶³ï¼Œéœ€è¦è‡³å°‘ 3 æ¡è®°å½•æ‰èƒ½é¢„æµ‹'
+        avgInterval: null,
+        avgAmount: null,
+        insight: 'Êı¾İ²»×ã£¬ĞèÒªÖÁÉÙ 3 Ìõ¼ÇÂ¼²ÅÄÜÔ¤²â',
+        guideline: this.getAgeGuidelines()
       };
     }
 
-    // æŒ‰æ—¶é—´æ’åº
+    // °´Ê±¼äÅÅĞò
     const sorted = [...records].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    // è¿‡æ»¤æŒ‡å®šå¤©æ•°å†…çš„è®°å½•
+    // ¹ıÂËÖ¸¶¨ÌìÊıÄÚµÄ¼ÇÂ¼
     const cutoff = Date.now() - lookbackDays * 86400000;
     const recent = sorted.filter(r => new Date(r.timestamp).getTime() > cutoff);
     const workingSet = recent.length >= 3 ? recent : sorted;
 
-    // --- é¢„æµ‹æ—¶é—´é—´éš” ---
+    // --- »ñÈ¡ÔÂÁä²Î¿¼±ê×¼ ---
+    const guideline = this.getAgeGuidelines();
+
+    // --- Ô¤²âÊ±¼ä¼ä¸ô ---
     const intervals = [];
     for (let i = 1; i < workingSet.length; i++) {
       const diff = new Date(workingSet[i].timestamp) - new Date(workingSet[i - 1].timestamp);
-      if (diff > 0 && diff < 8 * 3600000) { // æ’é™¤å¼‚å¸¸å€¼ï¼š> 8å°æ—¶
+      const maxInterval = guideline ? guideline.maxInterval * 60000 : 8 * 3600000;
+      const minInterval = guideline ? guideline.minInterval * 60000 : 1.5 * 3600000;
+      if (diff > 0 && diff < maxInterval * 1.5 && diff > minInterval * 0.5) {
         intervals.push(diff);
       }
     }
@@ -40,30 +81,41 @@ const Predictor = {
     let timeConfidence = 0;
 
     if (intervals.length >= 2) {
-      // åŠ æƒå¹³å‡ï¼šæœ€è¿‘çš„æ—¶é—´é—´éš”æƒé‡æ›´é«˜
+      // ¼ÓÈ¨Æ½¾ù£º×î½üµÄÊ±¼ä¼ä¸ôÈ¨ÖØ¸ü¸ß
       let totalWeight = 0;
       let weightedSum = 0;
       for (let i = 0; i < intervals.length; i++) {
-        const weight = (i + 1) / intervals.length; // è¶Šè¿‘æƒé‡è¶Šé«˜
+        const weight = (i + 1) / intervals.length;
         weightedSum += intervals[i] * weight;
         totalWeight += weight;
       }
       predictedInterval = weightedSum / totalWeight;
 
-      // ç½®ä¿¡åº¦ï¼šæ ‡å‡†å·®è¶Šå°ç½®ä¿¡åº¦è¶Šé«˜
+      // Èç¹ûÔÂÁä²Î¿¼¿ÉÓÃ£¬½«Ô¤²âÖµÏò²Î¿¼·¶Î§À­½ü
+      if (guideline) {
+        const refInterval = (guideline.minInterval + guideline.maxInterval) / 2 * 60000;
+        const weightRef = Math.min(0.3, intervals.length * 0.05); // Êı¾İÔ½¶àÔ½ĞÅÈÎÊµ¼ÊÊı¾İ
+        predictedInterval = predictedInterval * (1 - weightRef) + refInterval * weightRef;
+      }
+
+      // ÖÃĞÅ¶È£º±ê×¼²îÔ½Ğ¡ÖÃĞÅ¶ÈÔ½¸ß
       const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
       const variance = intervals.reduce((sum, val) => sum + (val - mean) ** 2, 0) / intervals.length;
       const stdDev = Math.sqrt(variance);
       timeConfidence = Math.max(0, Math.min(1, 1 - stdDev / (mean * 0.5)));
+    } else if (intervals.length === 1) {
+      // Ö»ÓĞÒ»Ìõ¼ä¸ôÊ±Ò²³¢ÊÔÔ¤²â£¬µ«ÖÃĞÅ¶È½ÏµÍ
+      predictedInterval = intervals[0];
+      timeConfidence = 0.2;
     }
 
-    // --- é¢„æµ‹å¥¶é‡ ---
+    // --- Ô¤²âÄÌÁ¿ ---
     const formulaRecords = workingSet.filter(r => r.amount > 0);
     let predictedAmount = null;
     let amountConfidence = 0;
 
     if (formulaRecords.length >= 2) {
-      // åŠ æƒå¹³å‡å¥¶é‡
+      // ¼ÓÈ¨Æ½¾ùÄÌÁ¿
       let totalWeight = 0;
       let weightedSum = 0;
       for (let i = 0; i < formulaRecords.length; i++) {
@@ -73,13 +125,29 @@ const Predictor = {
       }
       predictedAmount = Math.round(weightedSum / totalWeight);
 
+      // Èç¹ûÔÂÁä²Î¿¼¿ÉÓÃ£¬½«Ô¤²âÄÌÁ¿Ïò²Î¿¼·¶Î§À­½ü
+      if (guideline && predictedAmount !== null) {
+        const refAmount = (guideline.minAmount + guideline.maxAmount) / 2;
+        const weightRef = Math.min(0.25, formulaRecords.length * 0.04);
+        predictedAmount = Math.round(predictedAmount * (1 - weightRef) + refAmount * weightRef);
+      }
+
       const mean = formulaRecords.reduce((a, b) => a + b.amount, 0) / formulaRecords.length;
       const variance = formulaRecords.reduce((sum, val) => sum + (val.amount - mean) ** 2, 0) / formulaRecords.length;
       const stdDev = Math.sqrt(variance);
       amountConfidence = Math.max(0, Math.min(1, 1 - stdDev / (mean * 0.4)));
+    } else if (formulaRecords.length === 1) {
+      predictedAmount = formulaRecords[0].amount;
+      amountConfidence = 0.15;
     }
 
-    // è®¡ç®—ä¸‹ä¸€æ¬¡æ—¶é—´
+    // Èç¹ûÃ»ÓĞÈÎºÎ¼ÇÂ¼µ«ÓĞÔÂÁä²Î¿¼£¬¸ø³öÄ¬ÈÏÍÆ¼öÖµ
+    if (predictedAmount === null && guideline && BabyProfile.hasBirthDate()) {
+      predictedAmount = Math.round((guideline.minAmount + guideline.maxAmount) / 2);
+      amountConfidence = 0.1;
+    }
+
+    // ¼ÆËãÏÂÒ»´ÎÊ±¼ä
     let nextTime = null;
     if (predictedInterval !== null) {
       const lastFeed = new Date(workingSet[workingSet.length - 1].timestamp);
@@ -88,8 +156,8 @@ const Predictor = {
 
     const overallConfidence = Math.round((timeConfidence + amountConfidence) / 2 * 100);
 
-    // ç”Ÿæˆæ´å¯Ÿ
-    const insight = this._generateInsight(workingSet, intervals, predictedInterval, predictedAmount);
+    // Éú³É¶´²ì
+    const insight = this._generateInsight(workingSet, intervals, predictedInterval, predictedAmount, guideline);
 
     return {
       nextTime,
@@ -97,12 +165,13 @@ const Predictor = {
       confidence: overallConfidence,
       avgInterval: predictedInterval ? Math.round(predictedInterval / 60000) : null,
       avgAmount: predictedAmount,
-      insight
+      insight,
+      guideline
     };
   },
 
   /**
-   * è·å–ä»Šæ—¥ç»Ÿè®¡
+   * »ñÈ¡½ñÈÕÍ³¼Æ
    */
   getTodayStats() {
     const today = DataManager.getToday();
@@ -134,7 +203,7 @@ const Predictor = {
   },
 
   /**
-   * è·å–è¿‡å» N å¤©çš„æ¯æ—¥ç»Ÿè®¡
+   * »ñÈ¡¹ıÈ¥ N ÌìµÄÃ¿ÈÕÍ³¼Æ
    */
   getDailyStats(days = 7) {
     const result = [];
@@ -157,27 +226,48 @@ const Predictor = {
     return result;
   },
 
-  _generateInsight(records, intervals, avgInterval, avgAmount) {
-    if (records.length < 3) return 'æ•°æ®ä¸è¶³ï¼Œç»§ç»­è®°å½•ä»¥è·å–æ›´å‡†çš„é¢„æµ‹';
+  /**
+   * ¸ù¾İÔÂÁä»ñÈ¡ÍÆ¼öÃ¿ÈÕ×ÜÄÌÁ¿£¨ml£©
+   */
+  getRecommendedDailyAmount() {
+    const months = BabyProfile.getAgeMonths();
+    if (months === null) return null;
+
+    // »ùÓÚÌåÖØµÄ´ÖÂÔ¹ÀËã£º150ml/kg/Ìì£¬µ«²»Í¬ÔÂÁäÓĞ²»Í¬±ê×¼
+    if (months < 1) return { min: 400, max: 600, label: 'ĞÂÉú¶ùÃ¿ÈÕÍÆ¼ö 400-600ml' };
+    if (months < 2) return { min: 500, max: 800, label: '1¸öÔÂÃ¿ÈÕÍÆ¼ö 500-800ml' };
+    if (months < 4) return { min: 600, max: 1000, label: '2-3¸öÔÂÃ¿ÈÕÍÆ¼ö 600-1000ml' };
+    if (months < 6) return { min: 700, max: 1100, label: '4-5¸öÔÂÃ¿ÈÕÍÆ¼ö 700-1100ml' };
+    if (months < 12) return { min: 800, max: 1200, label: '6-11¸öÔÂÃ¿ÈÕÍÆ¼ö 800-1200ml£¨¼Ó¸¨Ê³£©' };
+    return { min: 800, max: 1200, label: '1ËêÒÔÉÏÃ¿ÈÕÍÆ¼ö 800-1200ml£¨¼Ó¸¨Ê³£©' };
+  },
+
+  _generateInsight(records, intervals, avgInterval, avgAmount, guideline) {
+    if (records.length < 3) return 'Êı¾İ²»×ã£¬¼ÌĞø¼ÇÂ¼ÒÔ»ñÈ¡¸ü×¼µÄÔ¤²â';
 
     const parts = [];
     const now = new Date();
     const todayCount = DataManager.getToday().length;
 
     if (todayCount > 0) {
-      parts.push(`ä»Šæ—¥å·²å–‚ ${todayCount} æ¬¡`);
+      parts.push(`½ñÈÕÒÑÎ¹ ${todayCount} ´Î`);
     }
 
     if (avgInterval !== null) {
       const mins = Math.round(avgInterval / 60000);
-      parts.push(`å¹³å‡é—´éš”çº¦ ${mins} åˆ†é’Ÿ`);
+      parts.push(`Æ½¾ù¼ä¸ôÔ¼ ${mins} ·ÖÖÓ`);
     }
 
     if (avgAmount) {
-      parts.push(`å¹³å‡å¥¶é‡ ${avgAmount}ml`);
+      parts.push(`Æ½¾ùÄÌÁ¿ ${avgAmount}ml`);
     }
 
-    // åˆ¤æ–­è¶‹åŠ¿
+    // Ìí¼ÓÔÂÁä²Î¿¼½¨Òé
+    if (guideline) {
+      parts.push(`¡¾${guideline.label}²Î¿¼¡¿¼ä¸ô ${guideline.minInterval}-${guideline.maxInterval} ·ÖÖÓ£¬ÄÌÁ¿ ${guideline.minAmount}-${guideline.maxAmount}ml`);
+    }
+
+    // ÅĞ¶ÏÇ÷ÊÆ
     const mid = Math.floor(records.length / 2);
     const firstHalf = records.slice(0, mid);
     const secondHalf = records.slice(mid);
@@ -185,11 +275,24 @@ const Predictor = {
     const secondAvg = secondHalf.reduce((s, r) => s + (r.amount || 0), 0) / secondHalf.length;
 
     if (secondAvg > firstAvg * 1.1) {
-      parts.push('å¥¶é‡å‘ˆä¸Šå‡è¶‹åŠ¿ ğŸ“ˆ');
+      parts.push('ÄÌÁ¿³ÊÉÏÉıÇ÷ÊÆ ??');
     } else if (secondAvg < firstAvg * 0.9) {
-      parts.push('å¥¶é‡å‘ˆä¸‹é™è¶‹åŠ¿ ğŸ“‰');
+      parts.push('ÄÌÁ¿³ÊÏÂ½µÇ÷ÊÆ ??');
     }
 
-    return parts.join(' Â· ');
+    // ¶Ô±ÈÔÂÁäÍÆ¼ö
+    const todayTotal = DataManager.getToday().reduce((s, r) => s + (r.amount || 0), 0);
+    if (guideline && todayTotal > 0) {
+      const refDaily = this.getRecommendedDailyAmount();
+      if (refDaily && todayCount >= 3) {
+        if (todayTotal < refDaily.min) {
+          parts.push(`½ñÈÕ×ÜÄÌÁ¿(${todayTotal}ml)Æ«µÍ£¬½¨ÒéÔö¼ÓÎ¹Ñø`);
+        } else if (todayTotal > refDaily.max) {
+          parts.push(`½ñÈÕ×ÜÄÌÁ¿(${todayTotal}ml)Æ«¸ß£¬×¢Òâ¹Û²ì±¦±¦·´Ó¦`);
+        }
+      }
+    }
+
+    return parts.join(' ¡¤ ');
   }
 };

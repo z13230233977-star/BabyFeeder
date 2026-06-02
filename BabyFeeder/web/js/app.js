@@ -1,5 +1,5 @@
 /**
- * ä¸»åº”ç”¨é€»è¾‘
+ * Ö÷Ó¦ÓÃÂß¼­
  */
 
 const App = {
@@ -9,6 +9,7 @@ const App = {
     this.loadTab('record');
     this.bindEvents();
     this.updateDateTime();
+    this.updateAgeBadge();
     setInterval(() => this.updateDateTime(), 10000);
   },
 
@@ -23,34 +24,51 @@ const App = {
     }
   },
 
+  updateAgeBadge() {
+    const badge = document.getElementById('header-age-badge');
+    if (!badge) return;
+    const profile = BabyProfile.get();
+    const ageLabel = BabyProfile.getAgeLabel();
+    if (BabyProfile.hasBirthDate()) {
+      badge.textContent = `${profile.name} ¡¤ ${ageLabel}`;
+      badge.style.display = 'block';
+    } else {
+      badge.textContent = '?? ÇëÉèÖÃ±¦±¦³öÉúÈÕÆÚ';
+      badge.style.display = 'block';
+    }
+  },
+
   bindEvents() {
-    // æ ‡ç­¾é¡µåˆ‡æ¢
+    // ±êÇ©Ò³ÇĞ»»
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         this.switchTab(e.currentTarget.dataset.tab);
       });
     });
 
-    // æäº¤è®°å½•
+    // Ìá½»¼ÇÂ¼
     document.getElementById('form-submit')?.addEventListener('click', () => this.submitRecord());
 
-    // å¿«æ·é”® Enter æäº¤
+    // ¿ì½İ¼ü Enter Ìá½»
     document.getElementById('feed-amount')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this.submitRecord();
     });
 
-    // å–‚å…»ç±»å‹åˆ‡æ¢
+    // Î¹ÑøÀàĞÍÇĞ»»
     document.querySelectorAll('input[name="feed-type"]').forEach(el => {
       el.addEventListener('change', () => this.toggleBreastSide());
     });
 
-    // å¯¼å‡º
+    // µ¼³ö
     document.getElementById('btn-export')?.addEventListener('click', () => this.exportData());
     document.getElementById('btn-import')?.addEventListener('click', () => this.importData());
     document.getElementById('btn-clear')?.addEventListener('click', () => this.clearData());
 
-    // æ•°æ®å¯¼å…¥æ–‡ä»¶é€‰æ‹©
+    // Êı¾İµ¼ÈëÎÄ¼şÑ¡Ôñ
     document.getElementById('import-file')?.addEventListener('change', (e) => this.handleImportFile(e));
+
+    // ±£´æÓ¤¶ùµµ°¸
+    document.getElementById('btn-save-profile')?.addEventListener('click', () => this.saveProfile());
   },
 
   switchTab(tab) {
@@ -67,10 +85,11 @@ const App = {
       case 'stats': this.renderStatsTab(); break;
       case 'predict': this.renderPredictTab(); break;
       case 'sync': this.renderSyncTab(); break;
+      case 'settings': this.renderSettingsTab(); break;
     }
   },
 
-  // ==================== è®°å½•æ ‡ç­¾é¡µ ====================
+  // ==================== ¼ÇÂ¼±êÇ©Ò³ ====================
   renderRecordTab() {
     this.renderTodayList();
     this.updateTodaySummary();
@@ -92,31 +111,30 @@ const App = {
     sorted.forEach(r => {
       const time = new Date(r.timestamp);
       const timeStr = time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      const typeLabel = r.type === 'formula' ? 'å¥¶ç²‰' : r.type === 'breast' ? 'æ¯ä¹³' : 'æ··åˆ';
-      const sideLabel = r.breastSide ? ` (${r.breastSide === 'left' ? 'å·¦' : r.breastSide === 'right' ? 'å³' : 'åŒä¾§'})` : '';
+      const typeLabel = r.type === 'formula' ? 'ÄÌ·Û' : r.type === 'breast' ? 'Ä¸Èé' : '»ìºÏ';
+      const sideLabel = r.breastSide ? ` (${r.breastSide === 'left' ? '×ó' : r.breastSide === 'right' ? 'ÓÒ' : 'Ë«²à'})` : '';
 
       const div = document.createElement('div');
       div.className = 'feed-item';
       div.innerHTML = `
         <div class="feed-item-left">
           <div class="feed-item-time">${timeStr}</div>
-          <div class="feed-item-meta">${typeLabel}${sideLabel}${r.note ? ' Â· ' + r.note : ''}</div>
+          <div class="feed-item-meta">${typeLabel}${sideLabel}${r.note ? ' ¡¤ ' + r.note : ''}</div>
         </div>
         <div class="feed-item-right">
           <span class="feed-item-amount">${r.amount || '-'} ml</span>
-          <button class="btn-icon delete-btn" data-id="${r.id}" title="åˆ é™¤">âœ•</button>
+          <button class="btn-icon delete-btn" data-id="${r.id}" title="É¾³ı">???</button>
         </div>
       `;
       list.appendChild(div);
     });
 
-    // ç»‘å®šåˆ é™¤äº‹ä»¶
+    // °ó¶¨É¾³ıÊÂ¼ş
     list.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        if (confirm('ç¡®å®šåˆ é™¤è¿™æ¡è®°å½•ï¼Ÿ')) {
+        if (confirm('È·¶¨É¾³ıÕâÌõ¼ÇÂ¼£¿')) {
           DataManager.remove(e.currentTarget.dataset.id);
           this.renderRecordTab();
-          // å¦‚æœå½“å‰åœ¨å…¶ä»–æ ‡ç­¾é¡µï¼Œåˆ·æ–°å®ƒä»¬
           if (this.currentTab !== 'record') this.loadTab(this.currentTab);
         }
       });
@@ -128,63 +146,48 @@ const App = {
     document.getElementById('today-count').textContent = stats.count;
     document.getElementById('today-total').textContent = stats.totalAmount;
     document.getElementById('today-avg').textContent = stats.avgAmount;
-    document.getElementById('today-interval').textContent = stats.avgInterval !== null ? `${stats.avgInterval} åˆ†é’Ÿ` : '--';
-  },
-
-  submitRecord() {
-    const amount = parseFloat(document.getElementById('feed-amount').value);
-    const type = document.querySelector('input[name="feed-type"]:checked').value;
-    const breastSide = document.querySelector('input[name="breast-side"]:checked')?.value || '';
-    const note = document.getElementById('feed-note').value.trim();
-
-    if (type === 'formula' && (!amount || amount <= 0)) {
-      alert('è¯·è¾“å…¥å¥¶ç²‰é‡');
-      return;
-    }
-
-    const record = {
-      timestamp: new Date().toISOString(),
-      amount: type === 'breast' ? 0 : amount,
-      type,
-      breastSide: type === 'formula' ? '' : breastSide,
-      note
-    };
-
-    DataManager.add(record);
-
-    // æ¸…ç©ºè¡¨å•
-    document.getElementById('feed-amount').value = '';
-    document.getElementById('feed-note').value = '';
-    document.getElementById('feed-amount').focus();
-
-    this.renderRecordTab();
-    // å°åŠ¨ç”»åé¦ˆ
-    const btn = document.getElementById('form-submit');
-    btn.textContent = 'âœ“ å·²è®°å½•';
-    setTimeout(() => { btn.textContent = 'è®°å½•å–‚å…»'; }, 1500);
+    document.getElementById('today-interval').textContent = stats.avgInterval !== null ? `${stats.avgInterval}·ÖÖÓ` : '--';
   },
 
   toggleBreastSide() {
-    const type = document.querySelector('input[name="feed-type"]:checked').value;
-    const breastOptions = document.getElementById('breast-side-options');
-    breastOptions.style.display = type === 'breast' || type === 'both' ? 'flex' : 'none';
+    const val = document.querySelector('input[name="feed-type"]:checked')?.value;
+    const options = document.getElementById('breast-side-options');
+    options.style.display = val === 'breast' || val === 'both' ? 'block' : 'none';
   },
 
-  // ==================== å†å²æ ‡ç­¾é¡µ ====================
+  submitRecord() {
+    const type = document.querySelector('input[name="feed-type"]:checked')?.value || 'formula';
+    const amount = parseFloat(document.getElementById('feed-amount').value) || 0;
+    const breastSide = document.querySelector('input[name="breast-side"]:checked')?.value || '';
+    const note = document.getElementById('feed-note').value.trim();
+
+    if (type !== 'breast' && amount <= 0) {
+      alert('ÇëÌîĞ´ÄÌÁ¿');
+      return;
+    }
+
+    DataManager.add({ type, amount, breastSide, note });
+    document.getElementById('feed-amount').value = '';
+    document.getElementById('feed-note').value = '';
+    this.renderRecordTab();
+    if (this.currentTab !== 'record') this.loadTab(this.currentTab);
+  },
+
+  // ==================== ÀúÊ·±êÇ©Ò³ ====================
   renderHistoryTab() {
     const records = DataManager.getAll();
     const sorted = [...records].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const container = document.getElementById('history-list');
+    const list = document.getElementById('history-list');
     const empty = document.getElementById('history-empty');
 
+    list.innerHTML = '';
     if (sorted.length === 0) {
-      container.innerHTML = '';
       empty.style.display = 'block';
       return;
     }
     empty.style.display = 'none';
 
-    // æŒ‰æ—¥æœŸåˆ†ç»„
+    // °´ÈÕÆÚ·Ö×é
     const groups = {};
     sorted.forEach(r => {
       const dateKey = new Date(r.timestamp).toLocaleDateString('zh-CN');
@@ -192,176 +195,440 @@ const App = {
       groups[dateKey].push(r);
     });
 
-    container.innerHTML = '';
-    Object.entries(groups).forEach(([dateKey, items]) => {
-      const total = items.reduce((s, r) => s + (r.amount || 0), 0);
-      const count = items.length;
-      const section = document.createElement('div');
-      section.className = 'history-date-group';
-      section.innerHTML = `
-        <div class="history-date-header">
-          <span>${dateKey}</span>
-          <span class="history-date-summary">${count} æ¬¡ Â· æ€»è®¡ ${total}ml</span>
-        </div>
-      `;
-      const list = document.createElement('div');
-      list.className = 'history-items';
-      items.forEach(r => {
+    Object.keys(groups).forEach(dateKey => {
+      const records = groups[dateKey];
+      const totalAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
+      const count = records.length;
+
+      const header = document.createElement('div');
+      header.className = 'history-date-header';
+      header.textContent = `${dateKey} ¡¤ ${count} ´Î ¡¤ ${totalAmount}ml`;
+      list.appendChild(header);
+
+      records.forEach(r => {
         const time = new Date(r.timestamp);
         const timeStr = time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-        const typeLabel = r.type === 'formula' ? 'å¥¶ç²‰' : r.type === 'breast' ? 'æ¯ä¹³' : 'æ··åˆ';
-        const sideLabel = r.breastSide ? (r.breastSide === 'left' ? 'å·¦' : r.breastSide === 'right' ? 'å³' : 'åŒä¾§') : '';
-        const item = document.createElement('div');
-        item.className = 'feed-item history-item';
-        item.innerHTML = `
+        const typeLabel = r.type === 'formula' ? 'ÄÌ·Û' : r.type === 'breast' ? 'Ä¸Èé' : '»ìºÏ';
+        const sideLabel = r.breastSide ? ` (${r.breastSide === 'left' ? '×ó' : r.breastSide === 'right' ? 'ÓÒ' : 'Ë«²à'})` : '';
+
+        const div = document.createElement('div');
+        div.className = 'feed-item';
+        div.innerHTML = `
           <div class="feed-item-left">
             <div class="feed-item-time">${timeStr}</div>
-            <div class="feed-item-meta">${typeLabel}${sideLabel ? ' Â· ' + sideLabel : ''}${r.note ? ' Â· ' + r.note : ''}</div>
+            <div class="feed-item-meta">${typeLabel}${sideLabel}${r.note ? ' ¡¤ ' + r.note : ''}</div>
           </div>
           <div class="feed-item-right">
             <span class="feed-item-amount">${r.amount || '-'} ml</span>
-            <button class="btn-icon delete-btn" data-id="${r.id}" title="åˆ é™¤">âœ•</button>
+            <button class="btn-icon delete-btn" data-id="${r.id}" title="É¾³ı">???</button>
           </div>
         `;
-        list.appendChild(item);
+        list.appendChild(div);
       });
-      section.appendChild(list);
-      container.appendChild(section);
     });
 
-    container.querySelectorAll('.delete-btn').forEach(btn => {
+    list.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        if (confirm('ç¡®å®šåˆ é™¤è¿™æ¡è®°å½•ï¼Ÿ')) {
+        if (confirm('È·¶¨É¾³ıÕâÌõ¼ÇÂ¼£¿')) {
           DataManager.remove(e.currentTarget.dataset.id);
           this.renderHistoryTab();
-          if (this.currentTab !== 'history') this.loadTab(this.currentTab);
         }
       });
     });
   },
 
-  // ==================== ç»Ÿè®¡æ ‡ç­¾é¡µ ====================
+  // ==================== Í³¼Æ±êÇ©Ò³ ====================
   renderStatsTab() {
-    const dailyStats = Predictor.getDailyStats(14);
-    const todayStats = Predictor.getTodayStats();
     const records = DataManager.getAll();
+    const sorted = [...records].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const totalDays = new Set(sorted.map(r => new Date(r.timestamp).toLocaleDateString())).size;
+    const totalFeeds = sorted.length;
+    const totalAmount = sorted.reduce((s, r) => s + (r.amount || 0), 0);
+    const avgAmount = totalFeeds > 0 ? Math.round(totalAmount / totalFeeds) : 0;
 
-    // æ¦‚è¦ç»Ÿè®¡
-    document.getElementById('stats-total-days').textContent = this._countActiveDays(records);
-    document.getElementById('stats-total-feeds').textContent = records.length;
-    document.getElementById('stats-total-amount').textContent = records.reduce((s, r) => s + (r.amount || 0), 0);
-    const avgPerFeed = records.length > 0 ? Math.round(records.reduce((s, r) => s + (r.amount || 0), 0) / records.length) : 0;
-    document.getElementById('stats-avg-amount').textContent = avgPerFeed;
+    document.getElementById('stats-total-days').textContent = totalDays;
+    document.getElementById('stats-total-feeds').textContent = totalFeeds;
+    document.getElementById('stats-total-amount').textContent = totalAmount;
+    document.getElementById('stats-avg-amount').textContent = avgAmount;
 
-    // æ¸²æŸ“å›¾è¡¨
-    setTimeout(() => {
-      ChartModule.renderAmountTrend('chart-amount', dailyStats);
-      ChartModule.renderCountTrend('chart-count', dailyStats);
-      ChartModule.renderHourlyDist('chart-hourly');
-    }, 50);
+    // ÔÂÁä²Î¿¼
+    const ageRef = document.getElementById('stats-age-reference');
+    const ageContent = document.getElementById('age-reference-content');
+    const guideline = Predictor.getAgeGuidelines();
+    const dailyRec = Predictor.getRecommendedDailyAmount();
+
+    if (guideline && dailyRec) {
+      ageRef.style.display = 'block';
+      ageContent.innerHTML = `
+        <div style="font-size:13px;line-height:1.8">
+          <div>?? <b>${guideline.label}</b></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div style="background:var(--primary-light);padding:10px;border-radius:8px;text-align:center">
+              <div style="font-size:11px;color:var(--text-secondary)">ÍÆ¼ö¼ä¸ô</div>
+              <div style="font-size:16px;font-weight:700;color:var(--primary)">${guideline.minInterval}-${guideline.maxInterval}·ÖÖÓ</div>
+            </div>
+            <div style="background:var(--primary-light);padding:10px;border-radius:8px;text-align:center">
+              <div style="font-size:11px;color:var(--text-secondary)">ÍÆ¼öµ¥´Î</div>
+              <div style="font-size:16px;font-weight:700;color:var(--primary)">${guideline.minAmount}-${guideline.maxAmount}ml</div>
+            </div>
+            <div style="background:var(--primary-light);padding:10px;border-radius:8px;text-align:center;grid-column:span 2">
+              <div style="font-size:11px;color:var(--text-secondary)">ÍÆ¼öÃ¿ÈÕ×ÜÄÌÁ¿</div>
+              <div style="font-size:16px;font-weight:700;color:var(--primary)">${dailyRec.min}-${dailyRec.max}ml</div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${dailyRec.label}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      ageRef.style.display = 'none';
+    }
+
+    // Í¼±í
+    this.renderCharts();
   },
 
-  _countActiveDays(records) {
-    if (records.length === 0) return 0;
-    const days = new Set();
-    records.forEach(r => {
-      days.add(new Date(r.timestamp).toLocaleDateString('zh-CN'));
+  renderCharts() {
+    const dailyStats = Predictor.getDailyStats(14);
+    if (typeof Chart === 'undefined') return;
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { grid: { display: false } }
+      }
+    };
+
+    // ÄÌÁ¿Ç÷ÊÆ
+    const ctx1 = document.getElementById('chart-amount');
+    if (ctx1) {
+      if (this._chartAmount) this._chartAmount.destroy();
+      this._chartAmount = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: dailyStats.map(d => d.label),
+          datasets: [{
+            label: '×ÜÄÌÁ¿ (ml)',
+            data: dailyStats.map(d => d.totalAmount),
+            backgroundColor: 'rgba(79, 172, 254, 0.6)',
+            borderColor: '#4FACFE',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: { ...chartOptions }
+      });
+    }
+
+    // Î¹Ñø´ÎÊı
+    const ctx2 = document.getElementById('chart-count');
+    if (ctx2) {
+      if (this._chartCount) this._chartCount.destroy();
+      this._chartCount = new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: dailyStats.map(d => d.label),
+          datasets: [{
+            label: 'Î¹Ñø´ÎÊı',
+            data: dailyStats.map(d => d.count),
+            borderColor: '#764ba2',
+            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          }]
+        },
+        options: { ...chartOptions }
+      });
+    }
+
+    // Ê±µã·Ö²¼
+    const hourlyData = new Array(24).fill(0);
+    DataManager.getAll().forEach(r => {
+      const h = new Date(r.timestamp).getHours();
+      hourlyData[h]++;
     });
-    return days.size;
+    const hourLabels = Array.from({length: 24}, (_, i) => `${i}Ê±`);
+
+    const ctx3 = document.getElementById('chart-hourly');
+    if (ctx3) {
+      if (this._chartHourly) this._chartHourly.destroy();
+      this._chartHourly = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: hourLabels,
+          datasets: [{
+            label: 'Î¹Ñø´ÎÊı',
+            data: hourlyData,
+            backgroundColor: 'rgba(82, 196, 26, 0.5)',
+            borderColor: '#52c41a',
+            borderWidth: 1,
+            borderRadius: 2
+          }]
+        },
+        options: {
+          ...chartOptions,
+          scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+    }
   },
 
-  // ==================== é¢„æµ‹æ ‡ç­¾é¡µ ====================
+  // ==================== Ô¤²â±êÇ©Ò³ ====================
   renderPredictTab() {
-    const result = Predictor.predict(7);
-    const el = document.getElementById('predict-result');
+    const container = document.getElementById('predict-result');
+    const ageHint = document.getElementById('predict-age-hint');
+    const ageHintContent = document.getElementById('age-hint-content');
 
-    if (!result.nextTime) {
-      el.innerHTML = `
+    // ÏÔÊ¾ÔÂÁäÌáÊ¾
+    const guideline = Predictor.getAgeGuidelines();
+    if (guideline) {
+      ageHint.style.display = 'block';
+      ageHintContent.innerHTML = `
+        <div style="font-size:13px;color:var(--text-secondary)">
+          µ±Ç° <b>${BabyProfile.getAgeLabel()}</b> ¡¤ ²Î¿¼¼ä¸ô ${guideline.minInterval}-${guideline.maxInterval} ·ÖÖÓ ¡¤ ²Î¿¼ÄÌÁ¿ ${guideline.minAmount}-${guideline.maxAmount}ml
+        </div>
+      `;
+    } else {
+      ageHint.style.display = 'none';
+    }
+
+    const result = Predictor.predict();
+
+    if (result.nextTime === null && result.nextAmount === null) {
+      container.innerHTML = `
         <div class="predict-empty">
-          <div class="predict-icon">ğŸ“Š</div>
+          <div class="predict-icon">??</div>
           <p>${result.insight}</p>
-          <p class="predict-hint">å½“å‰è®°å½•æ•°ï¼š${DataManager.getAll().length} æ¡</p>
+          ${!BabyProfile.hasBirthDate() ? '<p style="font-size:13px;color:var(--primary);margin-top:8px">?? È¥ ?? ÉèÖÃ ÌîĞ´³öÉúÈÕÆÚ»ñÈ¡ÔÂÁäÍÆ¼ö</p>' : ''}
         </div>
       `;
       return;
     }
 
-    const nextTime = new Date(result.nextTime);
-    const now = new Date();
-    const diffMs = nextTime - now;
-    const diffMins = Math.round(diffMs / 60000);
+    let html = '<div class="predict-main">';
 
-    let countdownText = '';
-    if (diffMins > 0) {
-      const hours = Math.floor(diffMins / 60);
-      const mins = diffMins % 60;
-      countdownText = `çº¦ ${hours} å°æ—¶ ${mins} åˆ†é’Ÿå`;
-    } else {
-      countdownText = 'é¢„è®¡å·²åˆ°å–‚å…»æ—¶é—´';
-    }
-
-    const timeStr = nextTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-
-    // è·å–æœ€è¿‘ä¸€æ¬¡å–‚å…»ä¿¡æ¯
-    const recent = DataManager.getRecent(1);
-    let lastFeedStr = '--';
-    if (recent.length > 0) {
-      const t = new Date(recent[0].timestamp);
-      if (t.toDateString() === now.toDateString()) {
-        lastFeedStr = t.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+    if (result.nextTime) {
+      const nextDate = new Date(result.nextTime);
+      const timeStr = nextDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      const now = new Date();
+      const diffMs = nextDate - now;
+      const diffMin = Math.round(diffMs / 60000);
+      let countdown = '';
+      if (diffMin > 0) {
+        if (diffMin < 60) countdown = `»¹ÓĞÔ¼ ${diffMin} ·ÖÖÓ`;
+        else countdown = `»¹ÓĞÔ¼ ${Math.floor(diffMin / 60)} Ğ¡Ê± ${diffMin % 60} ·ÖÖÓ`;
       } else {
-        lastFeedStr = t.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) + ' ' + t.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        countdown = 'ÒÑµ½Ô¤¼ÆÊ±¼ä';
       }
+
+      html += `
+        <div class="predict-time-label">Ô¤¼ÆÏÂ´ÎÎ¹ÑøÊ±¼ä</div>
+        <div class="predict-time">${timeStr}</div>
+        <div class="predict-countdown">${countdown}</div>
+      `;
     }
 
-    el.innerHTML = `
-      <div class="predict-card">
-        <div class="predict-main">
-          <div class="predict-time-label">é¢„è®¡ä¸‹æ¬¡å–‚å…»æ—¶é—´</div>
-          <div class="predict-time">${timeStr}</div>
-          <div class="predict-countdown">${countdownText}</div>
+    html += '</div>';
+
+    // ÏêÏ¸ĞÅÏ¢
+    html += '<div class="predict-details">';
+    if (result.avgInterval) {
+      html += `
+        <div class="predict-detail-item">
+          <span class="predict-detail-label">? Æ½¾ù¼ä¸ô</span>
+          <span class="predict-detail-value">${result.avgInterval} ·ÖÖÓ</span>
         </div>
-        <div class="predict-details">
-          <div class="predict-detail-item">
-            <span class="predict-detail-label">é¢„è®¡å¥¶é‡</span>
-            <span class="predict-detail-value">${result.nextAmount} ml</span>
-          </div>
-          <div class="predict-detail-item">
-            <span class="predict-detail-label">å¹³å‡é—´éš”</span>
-            <span class="predict-detail-value">${result.avgInterval} åˆ†é’Ÿ</span>
-          </div>
-          <div class="predict-detail-item">
-            <span class="predict-detail-label">é¢„æµ‹ç½®ä¿¡åº¦</span>
-            <span class="predict-detail-value">
-              <span class="confidence-bar"><span class="confidence-fill" style="width:${result.confidence}%"></span></span>
-              ${result.confidence}%
-            </span>
-          </div>
-          <div class="predict-detail-item">
-            <span class="predict-detail-label">ä¸Šæ¬¡å–‚å…»</span>
-            <span class="predict-detail-value">${lastFeedStr}</span>
-          </div>
+      `;
+    }
+    if (result.nextAmount) {
+      html += `
+        <div class="predict-detail-item">
+          <span class="predict-detail-label">?? Ô¤¼ÆÄÌÁ¿</span>
+          <span class="predict-detail-value">${result.nextAmount} ml</span>
         </div>
-        <div class="predict-insight">
-          <strong>ğŸ’¡ åˆ†æ</strong>
-          <p>${result.insight}</p>
-        </div>
+      `;
+    }
+    html += `
+      <div class="predict-detail-item">
+        <span class="predict-detail-label">?? Ô¤²âÖÃĞÅ¶È</span>
+        <span class="predict-detail-value">
+          ${result.confidence}%
+          <span class="confidence-bar"><span class="confidence-fill" style="width:${result.confidence}%"></span></span>
+        </span>
       </div>
     `;
+    html += '</div>';
 
-    // è‡ªåŠ¨åˆ·æ–°å€’è®¡æ—¶
-    if (this._predictTimer) clearTimeout(this._predictTimer);
-    this._predictTimer = setTimeout(() => this.renderPredictTab(), 30000);
+    // ¶´²ì
+    if (result.insight) {
+      html += `<div class="predict-insight">?? ${result.insight}</div>`;
+    }
+
+    container.innerHTML = html;
   },
 
-  // ==================== æ•°æ®ç®¡ç† ====================
+  // ==================== Í¬²½±êÇ©Ò³ ====================
+  renderSyncTab() {
+    const config = SyncManager.getConfig();
+    document.getElementById('sync-server-url').value = config.serverUrl || '';
+    document.getElementById('sync-group-id').value = config.groupId || '';
+    document.getElementById('sync-auto').checked = config.autoSync || false;
+
+    if (config.lastSync) {
+      const d = new Date(config.lastSync);
+      document.getElementById('sync-status-card').style.display = 'block';
+      document.getElementById('sync-status').innerHTML =
+        '<div style="font-size:13px;color:var(--text-secondary)">ÉÏ´ÎÍ¬²½: ' + d.toLocaleString('zh-CN') +
+        (config.lastSyncResult ? '<br>' + config.lastSyncResult : '') + '</div>';
+    }
+
+    // ÖØĞÂ°ó¶¨°´Å¥£¨ÒÆ³ı¾É¼àÌıÆ÷£©
+    ['btn-sync','btn-sync-upload','btn-sync-download','btn-sync-ping'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { const clone = el.cloneNode(true); el.parentNode.replaceChild(clone, el); }
+    });
+
+    document.getElementById('btn-sync').addEventListener('click', () => this.doSync('all'));
+    document.getElementById('btn-sync-upload').addEventListener('click', () => this.doSync('upload'));
+    document.getElementById('btn-sync-download').addEventListener('click', () => this.doSync('download'));
+    document.getElementById('btn-sync-ping').addEventListener('click', () => this.testSync());
+
+    ['sync-server-url','sync-group-id'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => this.saveSyncConfig());
+    });
+    document.getElementById('sync-auto').addEventListener('change', () => this.saveSyncConfig());
+  },
+
+  saveSyncConfig() {
+    const serverUrl = (document.getElementById('sync-server-url').value || '').trim();
+    const groupId = (document.getElementById('sync-group-id').value || '').trim();
+    const autoSync = document.getElementById('sync-auto').checked;
+    SyncManager.updateSettings(serverUrl, groupId, autoSync);
+  },
+
+  async testSync() {
+    this.saveSyncConfig();
+    const statusCard = document.getElementById('sync-status-card');
+    const statusEl = document.getElementById('sync-status');
+    statusCard.style.display = 'block';
+    statusEl.innerHTML = '²âÊÔÁ¬½ÓÖĞ...';
+    const result = await SyncManager.ping();
+    if (result.success) {
+      statusEl.innerHTML = '<div style="color:#52c41a;font-weight:600">? ' + result.message + '</div>';
+    } else {
+      statusEl.innerHTML = '<div style="color:#ff4d4f;font-weight:600">? ' + (result.error || 'Á¬½ÓÊ§°Ü') + '</div>';
+    }
+  },
+
+  doSync(mode) {
+    this.saveSyncConfig();
+    const config = SyncManager.getConfig();
+    if (!config.serverUrl || !config.groupId) {
+      alert('ÇëÌîĞ´·şÎñÆ÷µØÖ·ºÍÈº×éÂë');
+      return;
+    }
+
+    const statusCard = document.getElementById('sync-status-card');
+    const statusEl = document.getElementById('sync-status');
+    const btn = document.getElementById('btn-sync');
+    statusCard.style.display = 'block';
+    statusEl.innerHTML = 'Í¬²½ÖĞ...';
+    btn.disabled = true;
+    btn.textContent = 'Í¬²½ÖĞ...';
+
+    const runSync = async () => {
+      try {
+        let result;
+        if (mode === 'upload') result = await SyncManager.upload();
+        else if (mode === 'download') result = await SyncManager.download();
+        else result = await SyncManager.syncAll();
+
+        if (result.success) {
+          const label = mode === 'all' ? 'Ë«ÏòÍ¬²½' : (mode === 'upload' ? 'ÉÏ´«' : 'ÏÂÔØ');
+          statusEl.innerHTML = '<div style="color:#52c41a;font-weight:600">? ' + label + 'Íê³É</div>' +
+            '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px">' +
+            (result.count !== undefined ? '´¦Àí: ' + result.count + ' Ìõ' : '') +
+            (result.merged !== undefined ? ' ¡¤ ×Ü¼Æ: ' + result.merged + ' Ìõ' : '') + '</div>' +
+            '<div style="font-size:12px;color:#aaa;margin-top:4px">' + new Date().toLocaleString('zh-CN') + '</div>';
+          if (this.currentTab === 'record' || this.currentTab === 'history') this.loadTab(this.currentTab);
+        } else {
+          statusEl.innerHTML = '<div style="color:#ff4d4f;font-weight:600">? ' + (result.error || 'Í¬²½Ê§°Ü') + '</div>';
+        }
+      } catch (e) {
+        statusEl.innerHTML = '<div style="color:#ff4d4f;font-weight:600">? Òì³£: ' + e.message + '</div>';
+      }
+      btn.disabled = false;
+      btn.textContent = '?? Á¢¼´Í¬²½';
+    };
+    runSync();
+  },
+
+  // ==================== ÉèÖÃ±êÇ©Ò³ ====================
+  renderSettingsTab() {
+    const profile = BabyProfile.get();
+    const nameInput = document.getElementById('baby-name');
+    const birthInput = document.getElementById('baby-birthdate');
+    const ageDisplay = document.getElementById('baby-age-display');
+    const guideTable = document.getElementById('feeding-guide-table');
+
+    nameInput.value = profile.name || '';
+    birthInput.value = profile.birthDate || '';
+
+    const ageLabel = BabyProfile.getAgeLabel();
+    ageDisplay.textContent = `µ±Ç°ÔÂÁä£º${ageLabel}`;
+
+    // Î¹Ñø²Î¿¼±í
+    const allGuidelines = [
+      { age: 'ĞÂÉú¶ù£¨< 1¸öÔÂ£©', interval: '2-3 Ğ¡Ê±', amount: '30-90ml' },
+      { age: '1¸öÔÂ', interval: '3-4 Ğ¡Ê±', amount: '60-120ml' },
+      { age: '2-3¸öÔÂ', interval: '3-4 Ğ¡Ê±', amount: '90-150ml' },
+      { age: '4-5¸öÔÂ', interval: '4-5 Ğ¡Ê±', amount: '120-180ml' },
+      { age: '6-11¸öÔÂ', interval: '4-6 Ğ¡Ê±', amount: '150-240ml£¨¼Ó¸¨Ê³£©' },
+      { age: '1ËêÒÔÉÏ', interval: '4-6 Ğ¡Ê±', amount: '180-300ml£¨¼Ó¸¨Ê³£©' }
+    ];
+
+    guideTable.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse">
+      <thead><tr style="background:var(--primary);color:white">
+        <th style="padding:8px 10px;text-align:left">ÔÂÁä</th>
+        <th style="padding:8px 10px;text-align:center">ÍÆ¼ö¼ä¸ô</th>
+        <th style="padding:8px 10px;text-align:center">ÍÆ¼öÄÌÁ¿</th>
+      </tr></thead>
+      <tbody>${allGuidelines.map(g => {
+        const isCurrent = BabyProfile.hasBirthDate() && g.age.includes(Math.floor(BabyProfile.getAgeMonths() || 0).toString());
+        return `<tr style="border-bottom:1px solid var(--border)${isCurrent ? ';background:var(--primary-light);font-weight:600' : ''}">
+          <td style="padding:8px 10px">${g.age}</td>
+          <td style="padding:8px 10px;text-align:center">${g.interval}</td>
+          <td style="padding:8px 10px;text-align:center">${g.amount}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+  },
+
+  saveProfile() {
+    const name = (document.getElementById('baby-name').value || '').trim() || '±¦±¦';
+    const birthDate = document.getElementById('baby-birthdate').value || null;
+    BabyProfile.save({ name, birthDate });
+    this.renderSettingsTab();
+    this.updateAgeBadge();
+    alert('? Ó¤¶ùµµ°¸ÒÑ±£´æ£¡\nÔ¤²âÒıÇæ½«¸ù¾İ ' + BabyProfile.getAgeLabel() + ' Ìá¹©¾«×¼½¨Òé¡£');
+  },
+
+  // ==================== Êı¾İ¹ÜÀí ====================
   exportData() {
     const json = DataManager.exportJSON();
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `å©´å„¿å–‚å…»è®°å½•_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `baby_feeder_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   },
@@ -377,10 +644,10 @@ const App = {
     reader.onload = (ev) => {
       const success = DataManager.importJSON(ev.target.result);
       if (success) {
-        alert('å¯¼å…¥æˆåŠŸï¼');
+        alert('µ¼Èë³É¹¦£¡');
         this.loadTab(this.currentTab);
       } else {
-        alert('å¯¼å…¥å¤±è´¥ï¼Œè¯·æ£€æŸ¥æ–‡ä»¶æ ¼å¼');
+        alert('µ¼ÈëÊ§°Ü£¬Çë¼ì²éÎÄ¼ş¸ñÊ½');
       }
     };
     reader.readAsText(file);
@@ -388,93 +655,15 @@ const App = {
   },
 
   clearData() {
-    if (confirm('ç¡®å®šè¦æ¸…ç©ºæ‰€æœ‰æ•°æ®ï¼Ÿæ­¤æ“ä½œä¸å¯æ’¤é”€ï¼')) {
-      if (confirm('å†æ¬¡ç¡®è®¤ï¼šæ¸…ç©ºæ‰€æœ‰å–‚å…»è®°å½•ï¼Ÿ')) {
+    if (confirm('È·¶¨ÒªÇå¿ÕËùÓĞÊı¾İ£¿´Ë²Ù×÷²»¿É³·Ïú£¡')) {
+      if (confirm('ÔÙ´ÎÈ·ÈÏ£ºÇå¿ÕËùÓĞÎ¹Ñø¼ÇÂ¼£¿')) {
         DataManager.clear();
         this.loadTab(this.currentTab);
-        alert('æ•°æ®å·²æ¸…ç©º');
+        alert('Êı¾İÒÑÇå¿Õ');
       }
     }
   }
 };
 
-// é¡µé¢åŠ è½½å®Œæˆååˆå§‹åŒ–
+// Ò³Ãæ¼ÓÔØÍê³Éºó³õÊ¼»¯
 document.addEventListener('DOMContentLoaded', () => App.init());
-
-  // ==================== åŒæ­¥æ ‡ç­¾é¡µ ====================
-  renderSyncTab() {
-    const config = SyncManager.getConfig();
-    document.getElementById('sync-server-url').value = config.serverUrl || '';
-    document.getElementById('sync-group-id').value = config.groupId || '';
-    document.getElementById('sync-auto').checked = config.autoSync || false;
-
-    if (config.lastSync) {
-      const d = new Date(config.lastSync);
-      document.getElementById('sync-status-card').style.display = 'block';
-      document.getElementById('sync-status').innerHTML =
-        '<div style="font-size:13px;color:var(--text-secondary)">ä¸Šæ¬¡åŒæ­¥: ' + d.toLocaleString('zh-CN') + '</div>';
-    }
-
-    const btns = ['btn-sync','btn-sync-upload','btn-sync-download'];
-    btns.forEach(function(id) {
-      const el = document.getElementById(id);
-      if (el) { const newEl = el.cloneNode(true); el.parentNode.replaceChild(newEl, el); }
-    });
-
-    document.getElementById('btn-sync').addEventListener('click', function() { App.doSync('all'); });
-    document.getElementById('btn-sync-upload').addEventListener('click', function() { App.doSync('upload'); });
-    document.getElementById('btn-sync-download').addEventListener('click', function() { App.doSync('download'); });
-
-    ['sync-server-url','sync-group-id'].forEach(function(id) {
-      document.getElementById(id).addEventListener('input', function() { App.saveSyncConfig(); });
-    });
-    document.getElementById('sync-auto').addEventListener('change', function() { App.saveSyncConfig(); });
-  },
-
-  saveSyncConfig() {
-    const serverUrl = (document.getElementById('sync-server-url').value || '').trim();
-    const groupId = (document.getElementById('sync-group-id').value || '').trim();
-    const autoSync = document.getElementById('sync-auto').checked;
-    SyncManager.updateSettings(serverUrl, groupId, autoSync);
-  },
-
-  doSync: function(mode) {
-    this.saveSyncConfig();
-    const config = SyncManager.getConfig();
-    if (!config.serverUrl || !config.groupId) { alert('è¯·å¡«å†™æœåŠ¡å™¨åœ°å€å’Œç¾¤ç»„ç '); return; }
-
-    const statusCard = document.getElementById('sync-status-card');
-    const statusEl = document.getElementById('sync-status');
-    const btn = document.getElementById('btn-sync');
-    statusCard.style.display = 'block';
-    statusEl.innerHTML = 'åŒæ­¥ä¸­...';
-    btn.disabled = true;
-    btn.textContent = 'åŒæ­¥ä¸­...';
-
-    const self = this;
-    async function runSync() {
-      try {
-        let result;
-        if (mode === 'upload') result = await SyncManager.upload();
-        else if (mode === 'download') result = await SyncManager.download();
-        else result = await SyncManager.syncAll();
-
-        if (result.success) {
-          const label = mode === 'all' ? 'åŒå‘åŒæ­¥' : (mode === 'upload' ? 'ä¸Šä¼ ' : 'ä¸‹è½½');
-          statusEl.innerHTML = '<div style="color:#52c41a;font-weight:600">' + label + 'å®Œæˆ</div>' +
-            '<div style="font-size:13px;color:var(--text-secondary);margin-top:4px">' +
-            (result.count !== undefined ? 'è®°å½•: ' + result.count + ' æ¡' : '') +
-            (result.merged !== undefined ? ' æ€»è®¡: ' + result.merged + ' æ¡' : '') + '</div>' +
-            '<div style="font-size:12px;color:#aaa;margin-top:4px">' + new Date().toLocaleString('zh-CN') + '</div>';
-          if (self.currentTab === 'record' || self.currentTab === 'history') self.loadTab(self.currentTab);
-        } else {
-          statusEl.innerHTML = '<div style="color:#ff4d4f;font-weight:600">' + (result.error || 'åŒæ­¥å¤±è´¥') + '</div>';
-        }
-      } catch (e) {
-        statusEl.innerHTML = '<div style="color:#ff4d4f;font-weight:600">å¼‚å¸¸: ' + e.message + '</div>';
-      }
-      btn.disabled = false;
-      btn.textContent = 'ç«‹å³åŒæ­¥';
-    }
-    runSync();
-  }

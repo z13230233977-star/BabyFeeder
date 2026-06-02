@@ -697,3 +697,79 @@ body.pwa-mode {
     background: var(--card-bg);
   }
 }
+
+/* ==================== 头部年龄徽章 ==================== */
+.app-badge {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-top: 2px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 2px 12px;
+  display: inline-block;
+  cursor: pointer;
+  transition: background 0.2s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.app-badge:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ==================== 设置页面 ==================== */
+#feeding-guide-table table {
+  font-size: 12px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#feeding-guide-table th {
+  background: var(--primary);
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+#feeding-guide-table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+#feeding-guide-table th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+#feeding-guide-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+#feeding-guide-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==================== 同步页面增强 ==================== */
+#sync-status-card {
+  transition: all 0.3s ease;
+}
+
+#btn-sync:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==================== 统计页面月龄参考 ==================== */
+#stats-age-reference .card-title {
+  color: var(--primary);
+}
+
+/* ==================== 暗色模式适配 ==================== */
+@media (prefers-color-scheme: dark) {
+  .app-badge {
+    background: rgba(255,255,255,0.1);
+  }
+
+  #feeding-guide-table th {
+    background: var(--primary-dark);
+  }
+}

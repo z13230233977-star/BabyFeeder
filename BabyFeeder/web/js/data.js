@@ -1,25 +1,26 @@
 /**
- * æ•°æ®ç®¡ç†æ¨¡å— - ä½¿ç”¨ localStorage å­˜å‚¨å–‚å…»è®°å½•
+ * Êı¾İ¹ÜÀíÄ£¿é - Ê¹ÓÃ localStorage ´æ´¢Î¹Ñø¼ÇÂ¼ºÍÓ¤¶ùµµ°¸
  */
 
 const DB_KEY = 'baby_feeder_records';
+const BABY_PROFILE_KEY = 'baby_feeder_profile';
 
 const DataManager = {
   /**
-   * è·å–æ‰€æœ‰è®°å½•
+   * »ñÈ¡ËùÓĞ¼ÇÂ¼
    */
   getAll() {
     try {
       const data = localStorage.getItem(DB_KEY);
       return data ? JSON.parse(data) : [];
     } catch (e) {
-      console.error('è¯»å–æ•°æ®å¤±è´¥:', e);
+      console.error('¶ÁÈ¡Êı¾İÊ§°Ü:', e);
       return [];
     }
   },
 
   /**
-   * æ·»åŠ ä¸€æ¡å–‚å…»è®°å½•
+   * Ìí¼ÓÒ»ÌõÎ¹Ñø¼ÇÂ¼
    */
   add(record) {
     const records = this.getAll();
@@ -38,7 +39,7 @@ const DataManager = {
   },
 
   /**
-   * åˆ é™¤ä¸€æ¡è®°å½•
+   * É¾³ıÒ»Ìõ¼ÇÂ¼
    */
   remove(id) {
     const records = this.getAll().filter(r => r.id !== id);
@@ -46,7 +47,7 @@ const DataManager = {
   },
 
   /**
-   * æ›´æ–°ä¸€æ¡è®°å½•
+   * ¸üĞÂÒ»Ìõ¼ÇÂ¼
    */
   update(id, updates) {
     const records = this.getAll();
@@ -58,7 +59,7 @@ const DataManager = {
   },
 
   /**
-   * æŒ‰æ—¥æœŸèŒƒå›´æŸ¥è¯¢
+   * °´ÈÕÆÚ·¶Î§²éÑ¯
    */
   getByDateRange(startDate, endDate) {
     const records = this.getAll();
@@ -71,7 +72,7 @@ const DataManager = {
   },
 
   /**
-   * è·å–ä»Šæ—¥è®°å½•
+   * »ñÈ¡½ñÈÕ¼ÇÂ¼
    */
   getToday() {
     const today = new Date();
@@ -80,7 +81,7 @@ const DataManager = {
   },
 
   /**
-   * è·å–æœ€è¿‘ N æ¡è®°å½•
+   * »ñÈ¡×î½ü N Ìõ¼ÇÂ¼
    */
   getRecent(n) {
     const records = this.getAll();
@@ -89,30 +90,30 @@ const DataManager = {
   },
 
   /**
-   * æ¸…ç©ºæ‰€æœ‰æ•°æ®
+   * Çå¿ÕËùÓĞÊı¾İ
    */
   clear() {
     localStorage.removeItem(DB_KEY);
   },
 
   /**
-   * å¯¼å‡ºæ•°æ®ä¸º JSON
+   * µ¼³öÊı¾İÎª JSON
    */
   exportJSON() {
     return JSON.stringify(this.getAll(), null, 2);
   },
 
   /**
-   * ä» JSON å¯¼å…¥æ•°æ®
+   * ´Ó JSON µ¼ÈëÊı¾İ
    */
   importJSON(jsonStr) {
     try {
       const data = JSON.parse(jsonStr);
-      if (!Array.isArray(data)) throw new Error('æ ¼å¼é”™è¯¯');
+      if (!Array.isArray(data)) throw new Error('¸ñÊ½´íÎó');
       this._save(data);
       return true;
     } catch (e) {
-      console.error('å¯¼å…¥å¤±è´¥:', e);
+      console.error('µ¼ÈëÊ§°Ü:', e);
       return false;
     }
   },
@@ -123,32 +124,107 @@ const DataManager = {
 };
 
 /**
- * åŒæ­¥ç®¡ç† - å¤šè®¾å¤‡æ•°æ®å…±äº«
+ * Ó¤¶ùµµ°¸¹ÜÀí
+ */
+const BabyProfile = {
+  /**
+   * »ñÈ¡Ó¤¶ùµµ°¸
+   */
+  get() {
+    try {
+      const data = localStorage.getItem(BABY_PROFILE_KEY);
+      return data ? JSON.parse(data) : { name: '±¦±¦', birthDate: null };
+    } catch (e) {
+      return { name: '±¦±¦', birthDate: null };
+    }
+  },
+
+  /**
+   * ±£´æÓ¤¶ùµµ°¸
+   */
+  save(profile) {
+    localStorage.setItem(BABY_PROFILE_KEY, JSON.stringify(profile));
+  },
+
+  /**
+   * ¸üĞÂÓ¤¶ùµµ°¸×Ö¶Î
+   */
+  update(updates) {
+    const profile = this.get();
+    Object.assign(profile, updates);
+    this.save(profile);
+    return profile;
+  },
+
+  /**
+   * »ñÈ¡Ó¤¶ùÔÂÁä£¨¾«È·µ½ÔÂ£©
+   */
+  getAgeMonths() {
+    const profile = this.get();
+    if (!profile.birthDate) return null;
+    const birth = new Date(profile.birthDate);
+    const now = new Date();
+    const months = (now.getFullYear() - birth.getFullYear()) * 12
+      + (now.getMonth() - birth.getMonth())
+      + (now.getDate() >= birth.getDate() ? 0 : -0.5);
+    return Math.max(0, months);
+  },
+
+  /**
+   * »ñÈ¡ÔÂÁäÃèÊö
+   */
+  getAgeLabel() {
+    const months = this.getAgeMonths();
+    if (months === null) return 'Î´ÉèÖÃ';
+    if (months < 1) return 'ĞÂÉú¶ù£¨< 1¸öÔÂ£©';
+    if (months < 2) return '1¸öÔÂ';
+    if (months < 3) return '2¸öÔÂ';
+    if (months < 4) return '3¸öÔÂ';
+    if (months < 5) return '4¸öÔÂ';
+    if (months < 6) return '5¸öÔÂ';
+    if (months < 7) return '6¸öÔÂ';
+    if (months < 12) return `${Math.floor(months)}¸öÔÂ`;
+    const years = Math.floor(months / 12);
+    const remainMonths = Math.floor(months % 12);
+    return remainMonths > 0 ? `${years}Ëê${remainMonths}¸öÔÂ` : `${years}Ëê`;
+  },
+
+  /**
+   * ÅĞ¶ÏÊÇ·ñÒÑ¾­ÉèÖÃ³öÉúÈÕÆÚ
+   */
+  hasBirthDate() {
+    const profile = this.get();
+    return !!profile.birthDate;
+  }
+};
+
+/**
+ * Í¬²½¹ÜÀí - ¶àÉè±¸Êı¾İ¹²Ïí
  */
 const SYNC_CONFIG_KEY = 'baby_feeder_sync_config';
 
 const SyncManager = {
   /**
-   * è·å–åŒæ­¥é…ç½®
+   * »ñÈ¡Í¬²½ÅäÖÃ
    */
   getConfig() {
     try {
       const data = localStorage.getItem(SYNC_CONFIG_KEY);
-      return data ? JSON.parse(data) : { serverUrl: '', groupId: '', autoSync: false, lastSync: null };
+      return data ? JSON.parse(data) : { serverUrl: '', groupId: '', autoSync: false, lastSync: null, lastSyncResult: '' };
     } catch (e) {
-      return { serverUrl: '', groupId: '', autoSync: false, lastSync: null };
+      return { serverUrl: '', groupId: '', autoSync: false, lastSync: null, lastSyncResult: '' };
     }
   },
 
   /**
-   * ä¿å­˜åŒæ­¥é…ç½®
+   * ±£´æÍ¬²½ÅäÖÃ
    */
   saveConfig(config) {
     localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(config));
   },
 
   /**
-   * æ›´æ–°åŒæ­¥è®¾ç½®
+   * ¸üĞÂÍ¬²½ÉèÖÃ
    */
   updateSettings(serverUrl, groupId, autoSync) {
     const config = this.getConfig();
@@ -159,79 +235,103 @@ const SyncManager = {
   },
 
   /**
-   * ä¸Šä¼ æ•°æ®åˆ°æœåŠ¡å™¨
+   * ÉÏ´«Êı¾İµ½·şÎñÆ÷
    */
   async upload() {
     const config = this.getConfig();
     if (!config.serverUrl || !config.groupId) {
-      return { success: false, error: 'è¯·å…ˆé…ç½®æœåŠ¡å™¨åœ°å€å’Œç¾¤ç»„ç ' };
+      return { success: false, error: 'ÇëÏÈÅäÖÃ·şÎñÆ÷µØÖ·ºÍÈº×éÂë' };
     }
 
-    const records = this.getAll();
+    const records = DataManager.getAll();
     if (records.length === 0) {
-      return { success: false, error: 'æ²¡æœ‰æ•°æ®å¯åŒæ­¥' };
+      return { success: false, error: 'Ã»ÓĞÊı¾İ¿ÉÍ¬²½' };
     }
 
     try {
       const resp = await fetch(`${config.serverUrl}/sync?group=${encodeURIComponent(config.groupId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(records)
+        body: JSON.stringify({ records, groupId: config.groupId })
       });
       const result = await resp.json();
       if (result.success) {
         config.lastSync = new Date().toISOString();
+        config.lastSyncResult = `ÉÏ´« ${records.length} Ìõ`;
         this.saveConfig(config);
       }
       return result;
     } catch (e) {
-      return { success: false, error: 'è¿æ¥æœåŠ¡å™¨å¤±è´¥: ' + e.message };
+      return { success: false, error: 'Á¬½Ó·şÎñÆ÷Ê§°Ü: ' + e.message };
     }
   },
 
   /**
-   * ä»æœåŠ¡å™¨ä¸‹è½½æ•°æ®
+   * ´Ó·şÎñÆ÷ÏÂÔØÊı¾İ£¨»ñÈ¡Ô¶³Ì¼ÇÂ¼²¢Óë±¾µØºÏ²¢£©
    */
   async download() {
     const config = this.getConfig();
     if (!config.serverUrl || !config.groupId) {
-      return { success: false, error: 'è¯·å…ˆé…ç½®æœåŠ¡å™¨åœ°å€å’Œç¾¤ç»„ç ' };
+      return { success: false, error: 'ÇëÏÈÅäÖÃ·şÎñÆ÷µØÖ·ºÍÈº×éÂë' };
     }
 
     try {
       const resp = await fetch(`${config.serverUrl}/sync?group=${encodeURIComponent(config.groupId)}`);
-      const serverData = await resp.json();
+      const result = await resp.json();
+      const serverData = result.records || result;
 
       if (!Array.isArray(serverData) || serverData.length === 0) {
         config.lastSync = new Date().toISOString();
+        config.lastSyncResult = 'ÎŞÔ¶³ÌÊı¾İ';
         this.saveConfig(config);
         return { success: true, count: 0, merged: 0 };
       }
 
-      // åˆå¹¶æ•°æ®ï¼šç”¨æœåŠ¡å™¨æ•°æ®æ›¿æ¢æœ¬åœ°ï¼ˆæŒ‰ ID å»é‡ï¼‰
-      const localRecords = this.getAll();
-      const serverIds = new Set(serverData.map(r => r.id));
-      const merged = localRecords.filter(r => !serverIds.has(r.id));
-      const allRecords = [...merged, ...serverData];
+      // ºÏ²¢Êı¾İ£º±¾µØºÍ·şÎñÆ÷°´ ID È¥ÖØ£¬ÓÅÏÈ±£Áô×îĞÂµÄ
+      const localRecords = DataManager.getAll();
+      const serverMap = new Map(serverData.map(r => [r.id, r]));
+      const localWithoutServer = localRecords.filter(r => !serverMap.has(r.id));
+      const allRecords = [...localWithoutServer, ...serverData];
 
-      this._save(allRecords);
+      DataManager._save(allRecords);
       config.lastSync = new Date().toISOString();
+      config.lastSyncResult = `ÏÂÔØ ${serverData.length} Ìõ£¬ºÏ²¢ºó¹² ${allRecords.length} Ìõ`;
       this.saveConfig(config);
 
       return { success: true, count: serverData.length, merged: allRecords.length };
     } catch (e) {
-      return { success: false, error: 'è¿æ¥æœåŠ¡å™¨å¤±è´¥: ' + e.message };
+      return { success: false, error: 'Á¬½Ó·şÎñÆ÷Ê§°Ü: ' + e.message };
     }
   },
 
   /**
-   * åŒå‘åŒæ­¥ï¼ˆå…ˆä¸Šä¼ å†ä¸‹è½½ï¼‰
+   * Ë«ÏòÍ¬²½£¨ÏÈÉÏ´«ÔÙÏÂÔØ£©
    */
   async syncAll() {
+    const config = this.getConfig();
     const uploadResult = await this.upload();
     if (!uploadResult.success) return uploadResult;
-
     const downloadResult = await this.download();
     return downloadResult;
+  },
+
+  /**
+   * ²âÊÔÓë·şÎñÆ÷µÄÁ¬½Ó
+   */
+  async ping() {
+    const config = this.getConfig();
+    if (!config.serverUrl) {
+      return { success: false, error: 'ÇëÏÈÅäÖÃ·şÎñÆ÷µØÖ·' };
+    }
+    try {
+      const resp = await fetch(`${config.serverUrl}/ping`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      const result = await resp.json();
+      return { success: true, message: result.message || 'Á¬½Ó³É¹¦' };
+    } catch (e) {
+      return { success: false, error: 'ÎŞ·¨Á¬½Ó·şÎñÆ÷: ' + e.message };
+    }
   }
 };
